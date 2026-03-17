@@ -20,6 +20,7 @@ import drive_connector
 from drive_connector import (
     _has_spreadsheet_extension,
     authenticate,
+    create_folder,
     download_file,
     list_files,
     read_file,
@@ -598,6 +599,66 @@ class TestAuthenticate:
 
 
 # ---------------------------------------------------------------------------
+# create_folder
+# ---------------------------------------------------------------------------
+
+class TestCreateFolder:
+    """Tests for create_folder() — creating a new Drive folder."""
+
+    def test_returns_folder_id_string(self):
+        service = _make_service()
+        service.files.return_value.create.return_value.execute.return_value = {"id": "folder_id_abc"}
+
+        result = create_folder(service, "My Folder")
+        assert result == "folder_id_abc"
+
+    def test_sets_folder_mimetype(self):
+        service = _make_service()
+        service.files.return_value.create.return_value.execute.return_value = {"id": "fid"}
+
+        create_folder(service, "Test Folder")
+
+        call_kwargs = service.files.return_value.create.call_args
+        assert call_kwargs.kwargs["body"]["mimeType"] == "application/vnd.google-apps.folder"
+
+    def test_sets_folder_name(self):
+        service = _make_service()
+        service.files.return_value.create.return_value.execute.return_value = {"id": "fid"}
+
+        create_folder(service, "Sales 2024")
+
+        call_kwargs = service.files.return_value.create.call_args
+        assert call_kwargs.kwargs["body"]["name"] == "Sales 2024"
+
+    def test_sets_parent_when_provided(self):
+        service = _make_service()
+        service.files.return_value.create.return_value.execute.return_value = {"id": "fid"}
+
+        create_folder(service, "Sub Folder", parent_id="parent_folder_id")
+
+        call_kwargs = service.files.return_value.create.call_args
+        assert "parent_folder_id" in call_kwargs.kwargs["body"]["parents"]
+
+    def test_no_parents_key_when_parent_id_is_none(self):
+        service = _make_service()
+        service.files.return_value.create.return_value.execute.return_value = {"id": "fid"}
+
+        create_folder(service, "Root Folder")
+
+        call_kwargs = service.files.return_value.create.call_args
+        assert "parents" not in call_kwargs.kwargs["body"]
+
+    def test_requests_id_field_only(self):
+        service = _make_service()
+        service.files.return_value.create.return_value.execute.return_value = {"id": "fid"}
+
+        create_folder(service, "My Folder")
+
+        call_kwargs = service.files.return_value.create.call_args
+        assert call_kwargs.kwargs["fields"] == "id"
+
+
+# ---------------------------------------------------------------------------
 # Type annotations
 # ---------------------------------------------------------------------------
 
@@ -657,3 +718,13 @@ class TestTypeAnnotations:
 
     def test_read_file_service_is_any(self):
         assert self._hints(read_file)["service"] is Any
+
+    # create_folder
+    def test_create_folder_folder_name_is_str(self):
+        assert self._hints(create_folder)["folder_name"] is str
+
+    def test_create_folder_returns_str(self):
+        assert self._hints(create_folder)["return"] is str
+
+    def test_create_folder_service_is_any(self):
+        assert self._hints(create_folder)["service"] is Any

@@ -49,13 +49,14 @@ pipeline never touches Drive directly — it just receives a local folder path.
 | `download_file(service, file_id, dest_path)` | service, file ID, local path | `Path` | Streams to disk with `MediaIoBaseDownload`. |
 | `upload_file(service, local_path, folder_id)` | service, local path, folder ID | Drive file ID str | Resumable upload via `MediaFileUpload`. |
 | `read_file(service, file_id)` | service, file ID | `bytes` | In-memory only — no local write. |
+| `create_folder(service, folder_name, parent_id)` | service, name str, optional parent ID str | Drive folder ID str | `parent_id=None` creates in Drive root. |
 
 **Auth credential lookup order:**
 1. `credentials.json` in project root (downloaded from GCP Console)
 2. `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` in `.env`
 3. `RuntimeError` with setup instructions if neither is found
 
-**CLI:** `python src/drive_connector.py --auth` — quick auth smoke-test.
+**CLI:** `.venv/bin/python src/drive_connector.py --auth` — quick auth smoke-test.
 
 ---
 
@@ -81,7 +82,7 @@ consolidate(input_dir: str | Path) -> tuple[pd.DataFrame, list[dict]]
 # returns (merged_df, cleaning_log_entries)
 ```
 
-**CLI:** `python src/consolidator.py --input data/sample_files/`
+**CLI:** `.venv/bin/python src/consolidator.py --input data/sample_files/`
 
 ---
 
@@ -141,7 +142,7 @@ Loads the two DataFrames from `validator.py` and the cleaning log into SQLite.
 load(clean_df, quarantine_df, log_entries, db_path)
 ```
 
-**CLI:** `python src/db_loader.py [--seed | --full] [--db path/to/output.db]`
+**CLI:** `.venv/bin/python src/db_loader.py [--seed | --full] [--db path/to/output.db]`
 
 ---
 
@@ -153,7 +154,7 @@ multiple sheets by a grouping column (e.g. by `source_file` or `region`).
 Also exports the quarantine table to a separate sheet so the data owner can review
 and fix flagged rows in their source files.
 
-**CLI:** `python src/export.py --output data/output/consolidated.xlsx`
+**CLI:** `.venv/bin/python src/export.py --output data/output/consolidated.xlsx`
 
 ---
 
@@ -168,7 +169,7 @@ Generates a cleaning summary report in both terminal text and HTML.
 - Duplicates removed (count and source files)
 - Quarantine breakdown by reason type
 
-**CLI:** `python src/report.py [--html data/output/report.html]`
+**CLI:** `.venv/bin/python src/report.py [--html data/output/report.html]`
 
 ---
 
@@ -203,7 +204,7 @@ required on clone.
 | Clean Data | Filterable preview of the `consolidated` table |
 | Export | Download consolidated Excel file directly from UI |
 
-**Run:** `streamlit run dashboard/app.py`
+**Run:** `.venv/bin/streamlit run dashboard/app.py`
 
 ---
 
@@ -257,11 +258,42 @@ Excludes: `.env`, `credentials.json`, `token.json`, `data/output/`, `.venv/`,
 
 ---
 
+## `scripts/`
+
+### `scripts/seed_drive.py` ✅ built
+
+One-time utility to upload the local sample files to a Google Drive folder.
+Run this once to set up a live Drive source for testing the `--source gdrive` pipeline mode.
+
+**Behaviour:**
+- If `GOOGLE_DRIVE_FOLDER_ID` is set in `.env` (or `--folder-id` is passed), uploads
+  all sample files directly to that existing folder — no new folder is created.
+- If no folder ID is configured, creates a new folder named `excel_consolidator_samples`
+  in the Drive root, then uploads there.
+
+**Usage:**
+```bash
+# Uses GOOGLE_DRIVE_FOLDER_ID from .env automatically
+.venv/bin/python scripts/seed_drive.py
+
+# Override folder at the CLI
+.venv/bin/python scripts/seed_drive.py --folder-id <DRIVE_FOLDER_ID>
+
+# Create a new named folder in Drive root
+.venv/bin/python scripts/seed_drive.py --folder-name "q1_sales_uploads"
+```
+
+Prints the resolved folder ID on completion — paste it as `GOOGLE_DRIVE_FOLDER_ID` in `.env`
+if not already set.
+
+---
+
 ## Build Status
 
 | File | Status |
 |------|--------|
 | `src/drive_connector.py` | ✅ built |
+| `scripts/seed_drive.py` | ✅ built |
 | `src/consolidator.py` | 🔲 planned |
 | `src/validator.py` | 🔲 planned |
 | `src/db_loader.py` | 🔲 planned |

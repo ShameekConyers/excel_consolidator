@@ -1,12 +1,13 @@
 """
 drive_connector.py — Google Drive integration for the Excel consolidation pipeline.
 
-Provides four public functions:
-    authenticate()                          → Drive API service resource
-    list_files(service, folder_id)          → list of file metadata dicts
-    download_file(service, file_id, path)   → local Path
-    upload_file(service, local_path, folder_id) → Drive file ID string
-    read_file(service, file_id)             → raw bytes (no local write)
+Provides five public functions:
+    authenticate()                                      → Drive API service resource
+    list_files(service, folder_id)                      → list of file metadata dicts
+    download_file(service, file_id, path)               → local Path
+    upload_file(service, local_path, folder_id)         → Drive file ID string
+    read_file(service, file_id)                         → raw bytes (no local write)
+    create_folder(service, folder_name, parent_id=None) → Drive folder ID string
 
 Auth strategy (tried in order):
   1. credentials.json in the project root  (standard GCP OAuth client secret file)
@@ -233,6 +234,37 @@ def upload_file(service: Any, local_path: str | Path, folder_id: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Create folder
+# ---------------------------------------------------------------------------
+
+def create_folder(service: Any, folder_name: str, parent_id: str | None = None) -> str:
+    """Create a new folder in Google Drive and return its file ID.
+
+    Args:
+        service:      Authenticated Drive API resource (from authenticate()).
+        folder_name:  Display name for the new folder.
+        parent_id:    Optional Drive folder ID to nest the new folder inside.
+                      If None, the folder is created in the user's root Drive.
+
+    Returns:
+        Drive file ID string of the newly created folder.
+    """
+    metadata: dict[str, object] = {
+        "name": folder_name,
+        "mimeType": "application/vnd.google-apps.folder",
+    }
+    if parent_id:
+        metadata["parents"] = [parent_id]
+
+    folder = (
+        service.files()
+        .create(body=metadata, fields="id")
+        .execute()
+    )
+    return folder["id"]
+
+
+# ---------------------------------------------------------------------------
 # Read (in-memory, no local write)
 # ---------------------------------------------------------------------------
 
@@ -264,11 +296,12 @@ if __name__ == "__main__":
 
     print("drive_connector.py — Google Drive integration module")
     print("Available functions:")
-    print("  authenticate()                          → Drive service resource")
-    print("  list_files(service, folder_id)          → list of file dicts")
-    print("  download_file(service, file_id, path)   → local Path")
-    print("  upload_file(service, local_path, folder_id) → Drive file ID")
-    print("  read_file(service, file_id)             → bytes")
+    print("  authenticate()                                      → Drive service resource")
+    print("  list_files(service, folder_id)                      → list of file dicts")
+    print("  download_file(service, file_id, path)               → local Path")
+    print("  upload_file(service, local_path, folder_id)         → Drive file ID")
+    print("  read_file(service, file_id)                         → bytes")
+    print("  create_folder(service, folder_name, parent_id=None) → Drive folder ID")
     print()
     print("Quick auth test (requires credentials.json or .env):")
     print("  python src/drive_connector.py --auth")
