@@ -1,0 +1,43 @@
+# Validation rules for the Excel consolidation pipeline.
+# Edit this file to adapt the tool to your own data — no Python changes needed.
+
+columns:
+  date:
+    type: date
+    min: "2015-01-01"
+    max: "2026-12-31"
+    required: true
+
+  product:
+    type: text
+    required: true
+
+  region:
+    type: text
+    required: true
+
+  sales_rep:
+    type: text
+    required: true
+
+  customer:
+    type: text
+    required: true
+
+  quantity:
+    type: numeric
+    min: 1
+    required: true
+
+  revenue:
+    type: numeric
+    min: 0
+    required: true
+
+# Row-level rules
+min_non_null_fields: 4
+
+# Files where negative revenue is valid (e.g. returns/refunds).
+# These files skip the revenue min: 0 check.
+negative_revenue_allowed_files:
+  - returns_flagged.csv
