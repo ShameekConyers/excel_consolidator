@@ -1,0 +1,47 @@
+date,product,region,sales_rep,customer,quantity,revenue
+2024-07-08,Data Suite,Central,Sara Kim,Oscorp,7,15763.77
+2024-07-12,Data Suite,West,Dana Lee,Acme Corp,7,15400.24
+2024-07-19,Insights Hub,Central,Sara Kim,Initech,7,13414.82
+2024-07-28,Data Suite,East,Tom Rivera,Massive Dynamics,6,13239.55
+2024-08-03,DataViz Pro,West,Dana Lee,Wayne Enterprises,3,7901.67
+2024-08-08,Reporting Pkg,West,Dana Lee,Initech,8,11644.85
+2024-08-08,Analytics Pro,West,Dana Lee,Wayne Enterprises,8,11552.86
+2024-08-13,Reporting Pkg,West,Dana Lee,Initech,2,2901.49
+2024-08-22,Insights Hub,West,Dana Lee,Massive Dynamics,7,12560.31
+2024-08-31,Analytics Pro,West,Dana Lee,Umbrella Inc,7,10511.43
+2024-09-02,Insights Hub,West,Dana Lee,Initech,2,3432.58
+2024-09-10,DataViz Pro,East,Tom Rivera,Globex LLC,8,21057.62
+2024-09-12,DataViz Pro,Central,Sara Kim,Globex LLC,4,9725.05
+2024-09-15,Reporting Pkg,Central,Sara Kim,Oscorp,8,12084.28
+2024-09-16,Analytics Pro,Central,Sara Kim,Initech,2,3010.86
+2024-09-16,DataViz Pro,Central,Sara Kim,Oscorp,5,12854.77
+2024-09-17,Insights Hub,West,Dana Lee,Oscorp,8,14396.43
+2024-09-19,Data Suite,West,Dana Lee,Umbrella Inc,6,14345.1
+2024-09-20,Data Suite,Central,Sara Kim,Massive Dynamics,6,14154.32
+2024-09-25,Analytics Pro,West,Dana Lee,Massive Dynamics,7,10233.72
+2024-10-11,Reporting Pkg,East,Tom Rivera,Acme Corp,7,9877.85
+2024-10-15,Reporting Pkg,West,Dana Lee,Soylent Corp,6,9002.42
+2024-10-19,DataViz Pro,East,Tom Rivera,Initech,1,2673.59
+2024-11-03,DataViz Pro,West,Dana Lee,Umbrella Inc,5,12984.95
+2024-11-04,Data Suite,West,Dana Lee,Acme Corp,3,6252.49
+2024-11-04,Reporting Pkg,Central,Sara Kim,Oscorp,1,1319.66
+2024-11-08,Data Suite,East,Tom Rivera,Umbrella Inc,3,6987.68
+2024-11-10,Analytics Pro,East,Tom Rivera,Massive Dynamics,8,11918.0
+2024-11-10,Reporting Pkg,West,Dana Lee,Soylent Corp,4,5621.39
+2024-11-18,Reporting Pkg,West,Dana Lee,Soylent Corp,6,9064.6
+2024-11-14,Data Suite,East,Tom Rivera,Initech,unknown,4400.0
+2024-11-19,DataViz Pro,East,Tom Rivera,Initech,6,14902.22
+2024-11-19,Reporting Pkg,West,Dana Lee,Soylent Corp,4,5956.67
+2024-11-21,Analytics Pro,Central,Sara Kim,Massive Dynamics,3,4516.81
+2024-11-22,DataViz Pro,West,Dana Lee,Acme Corp,6,16027.59
+2024-11-25,Analytics Pro,West,Dana Lee,Soylent Corp,1,1634.56
+2024-12-04,Data Suite,Central,Sara Kim,Oscorp,7,15405.6
+2024-12-05,Analytics Pro,West,Dana Lee,Wayne Enterprises,5,8168.08
+2024-12-05,DataViz Pro,East,Tom Rivera,Soylent Corp,6,13987.51
+2024-12-09,Analytics Pro,Central,Sara Kim,Wayne Enterprises,8,11209.23
+2024-12-15,Analytics Pro,Central,Sara Kim,Umbrella Inc,8,11437.27
+2024-12-24,Insights Hub,West,Dana Lee,Acme Corp,5,8916.38
+2024-12-27,Data Suite,West,Dana Lee,Globex LLC,1,2231.93
+2024-09-11,Analytics Pro,Central,Sara Kim,Initech,1,-1500.0
+2024-12-30,Data Suite,West,Dana Lee,Oscorp,2,4357.8
+2024-12-31,Analytics Pro,Central,Sara Kim,Oscorp,2,2885.57
