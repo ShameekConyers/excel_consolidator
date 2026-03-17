@@ -1,0 +1,50 @@
+Return Date,Product Name,Region,Sales Rep,Customer,Units,Refund Amt
+08/23/2024,Insights Hub,Central,Sara Kim,Massive Dynamics,2,-3584.41
+05/15/2024,Reporting Pkg,Central,Sara Kim,Oscorp,3,-4250.82
+04/25/2024,Data Suite,West,Dana Lee,Soylent Corp,2,-4205.56
+06/11/2024,Data Suite,East,Tom Rivera,Oscorp,3,-6405.29
+03/03/2024,DataViz Pro,East,Tom Rivera,Wayne Enterprises,3,-6955.09
+05/27/2024,Reporting Pkg,East,Tom Rivera,Globex LLC,1,-1347.12
+09/02/2024,Insights Hub,East,Tom Rivera,Umbrella Inc,3,-4998.48
+05/19/2024,DataViz Pro,West,Dana Lee,Initech,2,-4966.51
+05/04/2024,DataViz Pro,West,Dana Lee,Acme Corp,3,-7190.12
+01/27/2024,DataViz Pro,Central,Sara Kim,Globex LLC,1,-2409.49
+03/11/2024,Reporting Pkg,East,Tom Rivera,Acme Corp,3,-4120.5
+08/31/2024,Data Suite,Central,Sara Kim,Oscorp,2,-4247.27
+01/31/2024,Data Suite,Central,Sara Kim,Globex LLC,2,-4101.31
+13/01/2024,Analytics Pro,East,Tom Rivera,Soylent Corp,1,-1500.0
+01/20/2024,DataViz Pro,Central,Sara Kim,Initech,1,-2383.79
+Finance: do not process until dispute resolved,,,,,,
+07/22/2024,Data Suite,East,Tom Rivera,Oscorp,1,-2199.38
+02/24/2024,Reporting Pkg,West,Dana Lee,Massive Dynamics,1,-1306.34
+09/09/2024,Insights Hub,East,Tom Rivera,Initech,3,-5153.38
+02/27/2024,Insights Hub,Central,Sara Kim,Massive Dynamics,2,-3309.41
+04/05/2024,Insights Hub,West,Dana Lee,Acme Corp,3,-4998.92
+04/08/2024,Reporting Pkg,Central,Sara Kim,Initech,2,-2774.66
+02/14/2024,Insights Hub,Central,Sara Kim,Wayne Enterprises,2,-3425.5
+09/01/2024,Analytics Pro,Central,Sara Kim,Massive Dynamics,1,-1497.25
+08/16/2024,Analytics Pro,West,Dana Lee,Soylent Corp,2,-2815.07
+01/06/2024,Reporting Pkg,East,Tom Rivera,Soylent Corp,3,-4229.45
+03/01/2024,Reporting Pkg,Central,Sara Kim,Oscorp,3,-4017.79
+06/08/2024,Data Suite,East,Tom Rivera,Globex LLC,2,-4261.87
+04/22/2024,Reporting Pkg,Central,Sara Kim,Initech,2,-2788.24
+07/10/2024,Data Suite,East,Tom Rivera,Wayne Enterprises,2,-4289.0
+04/21/2024,DataViz Pro,Central,Sara Kim,Umbrella Inc,2,-4878.68
+09/27/2024,DataViz Pro,Central,Sara Kim,Massive Dynamics,1,-2381.38
+09/15/2024,DataViz Pro,West,Dana Lee,Umbrella Inc,1,-2265.44
+09/23/2024,DataViz Pro,Central,Sara Kim,Oscorp,1,-2291.13
+02/16/2024,Data Suite,West,Dana Lee,Oscorp,3,-6324.88
+07/14/2024,Data Suite,East,Tom Rivera,Initech,1,
+08/21/2024,Insights Hub,West,Dana Lee,Acme Corp,1,-1712.38
+01/12/2024,Insights Hub,Central,Sara Kim,Wayne Enterprises,3,-5295.73
+02/07/2024,Analytics Pro,East,Tom Rivera,Acme Corp,3,-4148.06
+01/31/2024,Reporting Pkg,East,Tom Rivera,Globex LLC,3,-3942.74
+03/10/2024,Analytics Pro,East,Tom Rivera,Wayne Enterprises,2,-2822.66
+07/12/2024,Insights Hub,East,Tom Rivera,Wayne Enterprises,2,-3553.06
+06/27/2024,DataViz Pro,West,Dana Lee,Globex LLC,1,-2413.38
+04/24/2024,DataViz Pro,West,Dana Lee,Acme Corp,2,-4764.42
+08/05/2024,Reporting Pkg,West,Dana Lee,Wayne Enterprises,2,-2805.31
+05/21/2024,Data Suite,West,Dana Lee,Umbrella Inc,2,-4112.31
+08/02/2024,Analytics Pro,Central,Sara Kim,Acme Corp,1,-1471.42
+01/18/2024,Data Suite,West,Dana Lee,Oscorp,1,-2002.2
+07/24/2024,Analytics Pro,Central,Sara Kim,Oscorp,1,-1461.08
