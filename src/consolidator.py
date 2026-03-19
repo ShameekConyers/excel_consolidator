@@ -1,44 +1,42 @@
-"""
-consolidator.py — Core module for reading, standardizing, and merging Excel/CSV files.
+"""Core module for reading, standardizing, and merging Excel and CSV files.
 
-Responsibility: structural cleaning only.  Business-rule validation (min/max
-bounds, required fields, quarantine) is handled downstream by validator.py.
+Handles structural cleaning only. Business-rule validation (min/max bounds,
+required fields, quarantine) is handled downstream by validator.py.
 
-What this module does
-─────────────────────
-1. Discover all .xlsx / .xls / .csv files in a folder.
-2. Read each file — tolerating title rows above the real header row
-   (e.g. west_region_2024.xlsx has two non-data rows before the header).
-3. Standardize column names: map every file-specific variant to one of the
-   seven canonical names: date, product, region, sales_rep, customer,
-   quantity, revenue.  Inject "West" for the region column when it is absent
-   and the filename implies a single-region file.
-4. Normalize dates: parse ISO, US (MM/DD/YYYY), and written-month formats
-   ("March 15, 2024") into uniform YYYY-MM-DD strings.
-5. Clean numeric columns: strip currency symbols, commas, and whitespace from
-   quantity and revenue so downstream code can call float() reliably.
-   Non-parseable values (e.g. "pending", "TBD") are left unchanged so the
-   validator can quarantine them with a plain-English explanation.
-6. Drop fully-empty rows; detect and remove exact cross-file duplicates.
-7. Tag every row with source_file (filename) and source_row (1-based Excel
-   row number) before any rows are removed, so quarantine messages can say
-   "row 23 of Q3_sales.xlsx".
-8. Return one merged DataFrame and a cleaning log list of CleaningEntry
-   records suitable for insertion into the cleaning_log SQLite table.
+Pipeline steps applied to each file:
 
-Public API
-──────────
-    consolidate(folder_path)                        → (DataFrame, list[CleaningEntry])
-    load_file(file_path, log)                       → DataFrame
-    standardize_columns(df, source_file, log)       → DataFrame
-    normalize_dates(df, source_file, log)           → DataFrame
-    clean_numeric_columns(df, source_file, log)     → DataFrame
-    remove_duplicates(df, log)                      → DataFrame
-    handle_missing_values(df, source_file, log)     → DataFrame
-    tag_source(df, file_path, header_row_idx)       → DataFrame
-    log_action(log, source_file, transformation,
-               original_value, new_value)           → None
-    detect_header_row(raw_df)                       → int
+    1. Discover all .xlsx, .xls, and .csv files in a folder.
+    2. Read each file, tolerating title rows above the real header row
+       (e.g. west_region_2024.xlsx has two non-data rows before the header).
+    3. Standardize column names to one of seven canonical names: date, product,
+       region, sales_rep, customer, quantity, revenue. Inject "West" for the
+       region column when it is absent and the filename implies a single-region
+       file.
+    4. Normalize dates to uniform YYYY-MM-DD strings from ISO, US
+       (MM/DD/YYYY), and written-month formats (e.g. "March 15, 2024").
+    5. Clean numeric columns by stripping currency symbols, commas, and
+       whitespace. Non-parseable values (e.g. "pending", "TBD") are left
+       unchanged so the validator can quarantine them with a plain-English
+       explanation.
+    6. Drop fully-empty rows and remove exact cross-file duplicates.
+    7. Tag every row with source_file and source_row before any rows are
+       removed, so quarantine messages can say "row 23 of Q3_sales.xlsx".
+    8. Return one merged DataFrame and a list of CleaningEntry records
+       suitable for insertion into the cleaning_log SQLite table.
+
+Public functions:
+
+    consolidate(folder_path): Discover and merge all files in a folder.
+    load_file(file_path, log): Read and clean a single file.
+    standardize_columns(df, source_file, log): Map column name variants.
+    normalize_dates(df, source_file, log): Parse mixed date formats.
+    clean_numeric_columns(df, source_file, log): Strip currency formatting.
+    remove_duplicates(df, log): Remove exact cross-file duplicates.
+    handle_missing_values(df, source_file, log): Drop or flag empty rows.
+    tag_source(df, file_path, header_row_idx): Add source metadata columns.
+    log_action(log, source_file, transformation, original_value, new_value):
+        Append a CleaningEntry to the log.
+    detect_header_row(raw_df): Find the true header row index.
 """
 
 import re
@@ -425,21 +423,19 @@ def handle_missing_values(
 ) -> pd.DataFrame:
     """Handle missing values in the DataFrame using the specified strategy.
 
-    Strategies
-    ──────────
-    "drop_empty"  (default)
-        Drop rows where every data column is null or blank.  This catches
-        entirely empty rows that Excel files sometimes contain between data
-        blocks.  Rows with partial data are preserved so the validator can
-        quarantine them with a column-specific explanation.
+    Two strategies are supported:
 
-    "flag"
-        Instead of dropping, add a boolean "_all_empty" column marking the
-        fully-empty rows.  Useful for inspection; downstream steps can decide
-        what to do.
+        ``drop_empty`` (default): Drop rows where every data column is null or
+        blank. This catches entirely empty rows that Excel files sometimes
+        contain between data blocks. Rows with partial data are preserved so
+        the validator can quarantine them with a column-specific explanation.
 
-    The source_file and source_row columns are excluded from the emptiness
-    check (they are always populated after tag_source()).
+        ``flag``: Instead of dropping, add a boolean ``_all_empty`` column
+        marking the fully-empty rows. Useful for inspection; downstream steps
+        can decide what to do.
+
+    The ``source_file`` and ``source_row`` columns are excluded from the
+    emptiness check (they are always populated after ``tag_source()``).
 
     Args:
         df:          DataFrame with source_file and source_row already added.

@@ -1,9 +1,14 @@
-"""
-Generate sample Excel and CSV files for the excel_consolidator demo.
-Run once: python generate_samples.py
+"""Generate sample Excel and CSV files for the excel_consolidator demo.
 
-All files represent quarterly sales transactions — same domain, different formatting chaos.
-Row counts are sampled from Poisson(lambda=50). Fixed seed (42) for reproducibility.
+All files represent quarterly sales transactions in the same domain but with
+different formatting to simulate real-world schema drift. Row counts are
+sampled from a Poisson distribution (lambda=50). A fixed seed (42) ensures
+reproducible output.
+
+Example:
+    Run from the project root or the data/sample_files directory::
+
+        python data/sample_files/generate_samples.py
 """
 
 import csv
@@ -47,11 +52,11 @@ def rand_date(start: date, end: date) -> date:
     """Return a uniformly random date in the inclusive range [start, end].
 
     Args:
-        start (date): Earliest possible date.
-        end (date): Latest possible date.
+        start: Earliest possible date.
+        end: Latest possible date.
 
     Returns:
-        date: A randomly selected date between start and end.
+        A randomly selected date between start and end.
     """
     delta = max((end - start).days, 1)
     return start + timedelta(days=random.randint(0, delta))
@@ -61,10 +66,10 @@ def poisson_n(lam: int = 50) -> int:
     """Sample a row count from a Poisson distribution.
 
     Args:
-        lam (int): Lambda parameter — the expected mean row count. Defaults to 50.
+        lam: Lambda parameter — the expected mean row count. Defaults to 50.
 
     Returns:
-        int: Sampled row count, floored at 8 to avoid degenerate files.
+        Sampled row count, floored at 8 to avoid degenerate files.
     """
     return max(int(np.random.poisson(lam)), 8)
 
@@ -73,10 +78,10 @@ def fmt_iso(d: date) -> str:
     """Format a date as ISO 8601.
 
     Args:
-        d (date): The date to format.
+        d: The date to format.
 
     Returns:
-        str: Date string in YYYY-MM-DD format, e.g. '2024-03-15'.
+        Date string in YYYY-MM-DD format, e.g. ``'2024-03-15'``.
     """
     return d.strftime("%Y-%m-%d")
 
@@ -85,10 +90,10 @@ def fmt_us(d: date) -> str:
     """Format a date in US locale order.
 
     Args:
-        d (date): The date to format.
+        d: The date to format.
 
     Returns:
-        str: Date string in MM/DD/YYYY format, e.g. '03/15/2024'.
+        Date string in MM/DD/YYYY format, e.g. ``'03/15/2024'``.
     """
     return d.strftime("%m/%d/%Y")
 
@@ -97,10 +102,10 @@ def fmt_written(d: date) -> str:
     """Format a date with the full written month name.
 
     Args:
-        d (date): The date to format.
+        d: The date to format.
 
     Returns:
-        str: Date string e.g. 'March 15, 2024'.
+        Date string e.g. ``'March 15, 2024'``.
     """
     return f"{MONTHS_FULL[d.month - 1]} {d.day}, {d.year}"
 
@@ -109,10 +114,10 @@ def fmt_written_short(d: date) -> str:
     """Format a date with an abbreviated three-letter month name.
 
     Args:
-        d (date): The date to format.
+        d: The date to format.
 
     Returns:
-        str: Date string e.g. 'Mar 15, 2024'.
+        Date string e.g. ``'Mar 15, 2024'``.
     """
     return f"{MONTHS_SHORT[d.month - 1]} {d.day}, {d.year}"
 
@@ -123,10 +128,10 @@ def fmt_mixed_q2(d: date) -> str:
     Probabilities: US format (40%), ISO (35%), full written month (25%).
 
     Args:
-        d (date): The date to format.
+        d: The date to format.
 
     Returns:
-        str: Date string in one of three formats chosen at random.
+        Date string in one of three formats chosen at random.
     """
     r = random.random()
     if r < 0.40:
@@ -143,10 +148,10 @@ def fmt_written_q4(d: date) -> str:
     Probabilities: full month name (60%), abbreviated month name (40%).
 
     Args:
-        d (date): The date to format.
+        d: The date to format.
 
     Returns:
-        str: Date string in 'Month D, YYYY' or 'Mon D, YYYY' format.
+        Date string in ``'Month D, YYYY'`` or ``'Mon D, YYYY'`` format.
     """
     return fmt_written(d) if random.random() < 0.6 else fmt_written_short(d)
 
@@ -158,11 +163,11 @@ def insert_bad_rows(clean_rows: list, bad_rows: list) -> list:
     or spread across the file depending on the random draw.
 
     Args:
-        clean_rows (list): List of well-formed data rows.
-        bad_rows (list): List of intentionally malformed rows to scatter in.
+        clean_rows: List of well-formed data rows.
+        bad_rows: List of intentionally malformed rows to scatter in.
 
     Returns:
-        list: Combined list with bad rows inserted at random positions.
+        Combined list with bad rows inserted at random positions.
     """
     result = list(clean_rows)
     for bad in bad_rows:
@@ -181,13 +186,8 @@ def make_q1() -> None:
 
     Uses standard column names and ISO dates. Row count is sampled from
     Poisson(50). Three bad rows are seeded in: one negative revenue, one
-    missing customer, and one entirely empty row.
-
-    Args:
-        None
-
-    Returns:
-        None: Writes Q1_2024_sales.xlsx to the OUT directory.
+    missing customer, and one entirely empty row. Writes
+    ``Q1_2024_sales.xlsx`` to the OUT directory.
     """
     n = poisson_n()
     headers = ["Date", "Product", "Region", "Sales Rep", "Customer", "Qty", "Revenue"]
@@ -232,13 +232,8 @@ def make_q2() -> None:
     Every column has a different name from Q1 to simulate real-world schema drift.
     Date formats are randomly assigned per row (US, ISO, or written). Rep names
     are abbreviated (e.g. 'D. Lee'). Two bad rows are seeded: one comment row
-    left in the date field and one non-numeric revenue value ('pending').
-
-    Args:
-        None
-
-    Returns:
-        None: Writes Q2_2024_sales.xlsx to the OUT directory.
+    left in the date field and one non-numeric revenue value ('pending'). Writes
+    ``Q2_2024_sales.xlsx`` to the OUT directory.
     """
     n = poisson_n()
     headers = ["transaction_date", "product_name", "territory", "rep", "client", "units", "Rev."]
@@ -282,13 +277,7 @@ def make_q3() -> None:
     Column names diverge furthest from the canonical schema (e.g. 'Item', 'Area',
     'Account'). Five bad rows cover the widest variety of error types: two
     impossible dates, a zero-quantity row, a non-numeric quantity ('TBD'), and
-    a negative revenue.
-
-    Args:
-        None
-
-    Returns:
-        None: Writes Q3_2024_sales.xlsx to the OUT directory.
+    a negative revenue. Writes ``Q3_2024_sales.xlsx`` to the OUT directory.
     """
     n = poisson_n()
     headers = ["Date", "Item", "Area", "Salesperson", "Account", "Quantity", "Total Revenue"]
@@ -335,13 +324,7 @@ def make_q4() -> None:
     Every clean date uses a written month format ('October 1, 2024' or 'Oct 1, 2024'),
     making the column non-trivially parseable. Four bad rows: a far-future date
     (2099), two identical rows to form an exact duplicate, and a non-numeric
-    amount ('N/A').
-
-    Args:
-        None
-
-    Returns:
-        None: Writes Q4_2024_sales.xlsx to the OUT directory.
+    amount ('N/A'). Writes ``Q4_2024_sales.xlsx`` to the OUT directory.
     """
     n = poisson_n()
     headers = ["date", "product", "region", "sales_rep", "customer", "quantity", "amount"]
@@ -389,12 +372,7 @@ def make_west() -> None:
     title, row 2 is blank, and row 3 is the actual bold header row — the
     consolidator must detect and skip the two non-data rows before reading.
     Two bad rows: one negative revenue and one comment left in the date field.
-
-    Args:
-        None
-
-    Returns:
-        None: Writes west_region_2024.xlsx to the OUT directory.
+    Writes ``west_region_2024.xlsx`` to the OUT directory.
     """
     n = poisson_n()
     headers = ["Transaction Date", "Product Line", "Rep Name", "Client Name", "Units Sold", "Revenue ($)"]
@@ -442,13 +420,8 @@ def make_east_central() -> None:
     Uses terse column names including '$' for revenue. A section-divider row
     ('--- Q3 below ---') appears mid-file as if someone manually annotated the
     spreadsheet. Three bad rows: the divider, a currency-formatted string
-    ('$3,000') in the revenue column, and a row with both rep and customer missing.
-
-    Args:
-        None
-
-    Returns:
-        None: Writes east_central_Q2_Q3.xlsx to the OUT directory.
+    ('$3,000') in the revenue column, and a row with both rep and customer
+    missing. Writes ``east_central_Q2_Q3.xlsx`` to the OUT directory.
     """
     n = poisson_n()
     headers = ["Sale Date", "Product", "Region", "Rep", "Customer", "Qty", "$"]
@@ -491,13 +464,8 @@ def make_pipeline_csv() -> None:
 
     Uses canonical snake_case column names and ISO dates throughout, making it
     the easiest file for the consolidator to ingest. Two bad rows are seeded:
-    one negative revenue and one non-numeric quantity ('unknown').
-
-    Args:
-        None
-
-    Returns:
-        None: Writes pipeline_q3_q4.csv to the OUT directory.
+    one negative revenue and one non-numeric quantity ('unknown'). Writes
+    ``pipeline_q3_q4.csv`` to the OUT directory.
     """
     n = poisson_n()
     headers = ["date", "product", "region", "sales_rep", "customer", "quantity", "revenue"]
@@ -539,12 +507,7 @@ def make_returns_csv() -> None:
     rules will flag negative revenue unless the file type is handled separately.
     US date format (MM/DD/YYYY) throughout. Three bad rows: a comment row, a row
     with an empty refund amount, and a row with an impossible date (month 13).
-
-    Args:
-        None
-
-    Returns:
-        None: Writes returns_flagged.csv to the OUT directory.
+    Writes ``returns_flagged.csv`` to the OUT directory.
     """
     n = poisson_n()
     headers = ["Return Date", "Product Name", "Region", "Sales Rep", "Customer", "Units", "Refund Amt"]

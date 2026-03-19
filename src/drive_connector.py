@@ -1,22 +1,29 @@
-"""
-drive_connector.py — Google Drive integration for the Excel consolidation pipeline.
+"""Google Drive integration for the Excel consolidation pipeline.
 
-Provides five public functions:
-    authenticate()                                      → Drive API service resource
-    list_files(service, folder_id)                      → list of file metadata dicts
-    download_file(service, file_id, path)               → local Path
-    upload_file(service, local_path, folder_id)         → Drive file ID string
-    read_file(service, file_id)                         → raw bytes (no local write)
-    create_folder(service, folder_name, parent_id=None) → Drive folder ID string
+Provides functions to authenticate, list, download, upload, read, and create
+folders in Google Drive. All file operations are restricted to .xlsx, .xls,
+and .csv files.
 
-Auth strategy (tried in order):
-  1. credentials.json in the project root  (standard GCP OAuth client secret file)
-  2. GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET env vars (loaded from .env)
+Authentication strategy (tried in order):
 
-On first auth the browser opens for user consent; token.json is written automatically
-and reused (with silent refresh) on every subsequent call.
+    1. ``credentials.json`` in the project root (standard GCP OAuth client
+       secret file).
+    2. ``GOOGLE_CLIENT_ID`` and ``GOOGLE_CLIENT_SECRET`` environment variables
+       loaded from ``.env``.
 
-Neither credentials.json nor token.json are ever committed to Git.
+On first authentication the browser opens for user consent. ``token.json`` is
+written automatically and reused (with silent refresh) on every subsequent
+call. Neither ``credentials.json`` nor ``token.json`` are ever committed to
+Git.
+
+Public functions:
+
+    authenticate(): Return an authenticated Drive API service resource.
+    list_files(service, folder_id): List spreadsheet files in a folder.
+    download_file(service, file_id, path): Download a file to disk.
+    upload_file(service, local_path, folder_id): Upload a local file.
+    read_file(service, file_id): Return file bytes without writing to disk.
+    create_folder(service, folder_name, parent_id): Create a Drive folder.
 """
 
 import io
@@ -55,8 +62,17 @@ _ALLOWED_MIME_TYPES = {
 def authenticate() -> Any:
     """Return an authenticated Drive API service resource.
 
-    Raises RuntimeError with a plain-English message if credentials are not
-    configured so the caller can handle it gracefully.
+    Tries loading a saved token from ``token.json`` first. If the token is
+    expired, refreshes it silently. If no token exists, runs the browser-based
+    OAuth consent flow via ``_run_oauth_flow()``.
+
+    Returns:
+        Authenticated Google Drive API v3 service resource object.
+
+    Raises:
+        RuntimeError: If neither ``credentials.json`` nor the
+            ``GOOGLE_CLIENT_ID`` / ``GOOGLE_CLIENT_SECRET`` environment
+            variables are configured.
     """
     creds = _load_existing_token()
 
@@ -91,8 +107,20 @@ def _save_token(creds: Any) -> None:
 
 
 def _run_oauth_flow() -> Any:
-    """Run the browser-based OAuth consent flow. Tries credentials.json first,
-    then falls back to GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET env vars."""
+    """Run the browser-based OAuth consent flow and return credentials.
+
+    Tries ``credentials.json`` in the project root first, then falls back to
+    the ``GOOGLE_CLIENT_ID`` and ``GOOGLE_CLIENT_SECRET`` environment
+    variables. Saves the resulting token to ``token.json`` for reuse on
+    future runs.
+
+    Returns:
+        Google OAuth credentials object with a valid access token.
+
+    Raises:
+        RuntimeError: If neither ``credentials.json`` nor the required
+            environment variables are found.
+    """
     if _CREDENTIALS_FILE.exists():
         flow = InstalledAppFlow.from_client_secrets_file(
             str(_CREDENTIALS_FILE), SCOPES

@@ -1,20 +1,36 @@
-"""
-scripts/seed_drive.py — Upload local sample files to a new Google Drive folder.
+"""Upload local sample files to a new Google Drive folder.
 
-Usage:
-    python scripts/seed_drive.py
-    python scripts/seed_drive.py --folder-name "my_sales_data"
-    python scripts/seed_drive.py --folder-id <DRIVE_FOLDER_ID>
+Authenticates with Google Drive, resolves or creates the destination folder,
+and uploads every .xlsx, .xls, and .csv file from ``data/sample_files/``.
+Prints the resulting folder ID so it can be pasted into ``.env`` as
+``GOOGLE_DRIVE_FOLDER_ID``.
 
-What it does:
-    1. Authenticates with Google Drive (uses credentials.json or .env vars).
-    2. If --folder-id is given (or GOOGLE_DRIVE_FOLDER_ID is in .env), uploads directly
-       to that existing folder — no new folder is created.
-    3. Otherwise, creates a new folder (default name: "excel_consolidator_samples")
-       in the Drive root and uploads there.
-    4. Prints the folder ID — paste this as GOOGLE_DRIVE_FOLDER_ID in your .env.
+Steps performed:
 
-Run this once to set up the Drive source for end-to-end testing with --source gdrive.
+    1. Authenticate with Google Drive (uses ``credentials.json`` or
+       ``GOOGLE_CLIENT_ID`` / ``GOOGLE_CLIENT_SECRET`` from ``.env``).
+    2. If ``--folder-id`` is given (or ``GOOGLE_DRIVE_FOLDER_ID`` is in
+       ``.env``), upload directly to that existing folder.
+    3. Otherwise, create a new folder in the Drive root using ``--folder-name``
+       (default: ``"excel_consolidator_samples"``).
+    4. Upload all spreadsheet files and print the folder ID.
+
+Note:
+    Run this once to set up the Drive source for end-to-end testing with
+    ``--source gdrive``.
+
+Example:
+    Upload to a new folder with the default name::
+
+        python scripts/seed_drive.py
+
+    Use a custom folder name::
+
+        python scripts/seed_drive.py --folder-name "my_sales_data"
+
+    Upload to an existing folder::
+
+        python scripts/seed_drive.py --folder-id <DRIVE_FOLDER_ID>
 """
 
 import argparse
@@ -50,12 +66,14 @@ def collect_sample_files(sample_dir: Path) -> list[Path]:
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments for the Drive seeder.
 
-    --folder-id defaults to GOOGLE_DRIVE_FOLDER_ID from .env if present.
-    When a folder ID is resolved, files are uploaded directly to that folder
-    and no new folder is created.
-
     Returns:
-        Namespace with folder_name (str) and folder_id (str | None).
+        Parsed namespace with ``folder_name`` (str) and ``folder_id``
+        (str or None) attributes.
+
+    Note:
+        ``--folder-id`` defaults to ``GOOGLE_DRIVE_FOLDER_ID`` from ``.env``
+        when present. When a folder ID is resolved, files are uploaded
+        directly to that folder and no new folder is created.
     """
     parser = argparse.ArgumentParser(
         description="Upload local sample files to a Google Drive folder."
@@ -81,7 +99,11 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    """Authenticate, resolve the target Drive folder, upload all sample files, and print the folder ID."""
+    """Authenticate with Drive, resolve the target folder, and upload all sample files.
+
+    Prints progress messages and the final folder ID with ``.env`` setup
+    instructions.
+    """
     args = parse_args()
 
     print("Authenticating with Google Drive...")
