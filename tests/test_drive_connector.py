@@ -1,8 +1,12 @@
-"""
-Unit tests for src/drive_connector.py.
+"""Unit tests for src/drive_connector.py.
 
-All Google Drive API calls are mocked — no credentials or network access required.
-Run with: pytest tests/test_drive_connector.py -v
+All Google Drive API calls are mocked — no credentials or network access
+are required to run the suite.
+
+Example:
+    Run with pytest::
+
+        pytest tests/test_drive_connector.py -v
 """
 
 import os
@@ -84,7 +88,17 @@ class TestHasSpreadsheetExtension:
 class TestListFiles:
     """Tests for list_files() — Drive folder listing and spreadsheet filtering."""
 
-    def _response(self, files, next_token=None):
+    def _response(self, files: list, next_token: str | None = None) -> dict:
+        """Build a mock Drive API ``files.list`` response dict.
+
+        Args:
+            files: List of file metadata dicts to include in the response.
+            next_token: Optional pagination token; omitted from the dict when
+                None.
+
+        Returns:
+            Dict matching the Drive API ``files.list`` response shape.
+        """
         r = {"files": files}
         if next_token:
             r["nextPageToken"] = next_token
@@ -669,7 +683,16 @@ class TestTypeAnnotations:
     a type hint is removed during refactoring.
     """
 
-    def _hints(self, fn):
+    def _hints(self, fn: object) -> dict:
+        """Return resolved type hints for a callable.
+
+        Args:
+            fn: Any callable with type annotations.
+
+        Returns:
+            Dict mapping parameter names (including ``'return'``) to their
+            resolved type objects.
+        """
         return get_type_hints(fn)
 
     # list_files
