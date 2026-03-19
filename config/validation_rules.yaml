@@ -34,8 +34,18 @@ columns:
     min: 0
     required: true
 
+  email:
+    type: text
+    pattern: ".*@.*\\..*"
+    required: false
+
 # Row-level rules
-min_non_null_fields: 4
+min_non_null_fields: 3
+
+# When true, rows with a value that cannot be coerced to the declared type
+# (e.g. "TBD" in a numeric column) are quarantined with a type-mismatch reason
+# rather than silently dropped.
+flag_non_conforming_types: true
 
 # Files where negative revenue is valid (e.g. returns/refunds).
 # These files skip the revenue min: 0 check.
