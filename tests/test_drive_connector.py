@@ -99,7 +99,7 @@ class TestListFiles:
         Returns:
             Dict matching the Drive API ``files.list`` response shape.
         """
-        r = {"files": files}
+        r: dict[str, object] = {"files": files}
         if next_token:
             r["nextPageToken"] = next_token
         return r
