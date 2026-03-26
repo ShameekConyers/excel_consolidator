@@ -28,7 +28,7 @@ data/sample_files/  ──►  consolidator.py  ──►  validator.py
                                ┌─────────────┼─────────────┐
                                ▼             ▼             ▼
                           export.py      report.py     dashboard/app.py
-                        (Excel out)   (HTML report)   (Streamlit UI)
+                        (Excel out)   (.md report)    (Streamlit UI)
 ```
 
 ---
@@ -102,7 +102,7 @@ folder populated by `drive_connector.py`) and produces a single merged DataFrame
 
 ---
 
-### `src/validator.py` 🔲 planned
+### `src/validator.py` ✅ built
 
 Splits the consolidated DataFrame into clean rows and quarantined rows by running
 each row through the rules defined in `config/validation_rules.yaml`.
@@ -129,15 +129,17 @@ each row through the rules defined in `config/validation_rules.yaml`.
 **File-level exception:** `returns_flagged.csv` is exempt from `revenue min: 0`
 (configured under `negative_revenue_allowed_files` in the YAML).
 
-**Planned interface:**
-```python
-validate(df: pd.DataFrame, rules_path: str | Path) -> tuple[pd.DataFrame, pd.DataFrame]
-# returns (clean_df, quarantine_df)
-```
+**Public API:**
+
+| Function | Args | Returns |
+|----------|------|---------|
+| `load_rules(config_path)` | `str \| Path` | `dict` of parsed YAML rules |
+| `validate(df, rules)` | DataFrame, rules dict | `tuple[clean_df, quarantine_df]` |
+| `summarize(clean_df, quarantine_df)` | two DataFrames | plain-English summary string |
 
 ---
 
-### `src/db_loader.py` 🔲 planned
+### `src/db_loader.py` ✅ built
 
 Loads the two DataFrames from `validator.py` and the cleaning log into SQLite.
 
@@ -153,39 +155,79 @@ Loads the two DataFrames from `validator.py` and the cleaning log into SQLite.
 - `--seed` (default) — reads from `data/sample_files/`, writes to `data/seed.db`
 - `--full` — reads from a live folder or Drive, writes to a separate DB
 
-**Planned interface:**
-```python
-load(clean_df, quarantine_df, log_entries, db_path)
-```
+**Public API:**
 
-**CLI:** `.venv/bin/python src/db_loader.py [--seed | --full] [--db path/to/output.db]`
+| Function | Args | Returns |
+|----------|------|---------|
+| `load(clean_df, quarantine_df, cleaning_log, db_path, mode)` | DataFrames, log, path, `"seed"` or `"full"` | `LoadResult` |
+| `resolve_db_path(base_dir, mode)` | project root path, mode str | `Path` to default DB file |
+| `init_schema(conn)` | SQLite connection | — |
+| `write_consolidated(conn, clean_df)` | connection, DataFrame | rows inserted (int) |
+| `write_quarantine(conn, quarantine_df)` | connection, DataFrame | rows inserted (int) |
+| `write_cleaning_log(conn, cleaning_log)` | connection, list of `CleaningEntry` | entries inserted (int) |
+| `build_summary(result)` | `LoadResult` | plain-English summary string |
 
----
-
-### `src/export.py` 🔲 planned
-
-Exports the clean consolidated data to a single `.xlsx` file. Optionally splits into
-multiple sheets by a grouping column (e.g. by `source_file` or `region`).
-
-Also exports the quarantine table to a separate sheet so the data owner can review
-and fix flagged rows in their source files.
-
-**CLI:** `.venv/bin/python src/export.py --output data/output/consolidated.xlsx`
+**Class:** `LoadResult` — dataclass with `db_path`, `n_consolidated`, `n_quarantine`, `n_log_entries`.
 
 ---
 
-### `src/report.py` 🔲 planned
+### `src/export.py` ✅ built
 
-Generates a cleaning summary report in both terminal text and HTML.
+Reads clean and quarantined rows from SQLite and writes a formatted `.xlsx` workbook.
+Each sheet has auto-sized columns and a frozen header row. Clean data optionally splits
+into per-value sheets by a grouping column (e.g. `region` or `source_file`); the
+quarantine sheet is always appended last.
+
+**Public API:**
+
+| Function | Args | Returns |
+|----------|------|---------|
+| `read_consolidated(db_path)` | `str \| Path` | DataFrame from `consolidated` table |
+| `read_quarantine(db_path)` | `str \| Path` | DataFrame from `quarantine` table |
+| `split_by_column(df, col)` | DataFrame, column name | `dict[sheet_name → DataFrame]` |
+| `build_sheet_map(clean_df, quarantine_df, group_by)` | DataFrames, optional col name | ordered `dict[sheet_name → DataFrame]` |
+| `write_workbook(sheet_map, output_path)` | sheet map dict, path | `ExportResult` |
+| `build_summary(result)` | `ExportResult` | plain-English summary string |
+| `export(db_path, output_path, group_by)` | paths, optional col name | `ExportResult` (convenience wrapper) |
+
+**Class:** `ExportResult` — dataclass with `output_path`, `sheets`, `n_clean`, `n_quarantine`.
+
+**CLI:** `.venv/bin/python src/export.py [--db data/seed.db] [--output data/output/consolidated.xlsx] [--group-by region]`
+
+---
+
+### `src/report.py` ✅ built
+
+Generates a cleaning summary report for both terminal display and markdown file output.
+Reads directly from the three SQLite tables — no DataFrames passed in.
 
 **Report contents:**
-- Files processed, total rows ingested
-- Rows passed vs. quarantined (overall and per file)
-- Columns standardized (before → after name mapping)
-- Duplicates removed (count and source files)
-- Quarantine breakdown by reason type
+- Files processed, rows before/after cleaning
+- Columns standardized (count of rename_column log entries)
+- Duplicates removed (parsed from cleaning_log)
+- Type fixes applied (date normalizations + currency strip counts)
+- Full transformation breakdown by type
+- Quarantine count, by reason category, and by source file
 
-**CLI:** `.venv/bin/python src/report.py [--html data/output/report.html]`
+**Public API:**
+
+| Function | Args | Returns |
+|----------|------|---------|
+| `read_consolidated(db_path)` | `str \| Path` | DataFrame from `consolidated` table (drops `id`, `loaded_at`) |
+| `read_quarantine(db_path)` | `str \| Path` | DataFrame from `quarantine` table (drops `id`, `quarantined_at`) |
+| `read_cleaning_log(db_path)` | `str \| Path` | DataFrame from `cleaning_log` table |
+| `generate_cleaning_summary(clean_df, quarantine_df, log_df)` | DataFrames | `CleaningSummary` |
+| `generate_quarantine_summary(quarantine_df)` | DataFrame | `QuarantineSummary` |
+| `render_terminal(cleaning, quarantine)` | two summary dataclasses | plain-English string (also prints) |
+| `render_markdown(cleaning, quarantine, output_path)` | two summary dataclasses, path | `Path` written |
+| `report(db_path, output_path, fmt)` | path, optional path, `"markdown"` | `ReportResult` |
+
+**Classes:**
+- `CleaningSummary` — `n_files`, `file_names`, `n_rows_before`, `n_rows_after`, `n_columns_standardized`, `n_duplicates_removed`, `n_type_fixes`, `transformation_counts`
+- `QuarantineSummary` — `n_quarantined`, `by_reason_type`, `by_source_file`
+- `ReportResult` — `terminal_text`, `output_path`
+
+**CLI:** `.venv/bin/python src/report.py [--db data/seed.db] [--output data/output/report.md] [--format markdown]`
 
 ---
 
@@ -206,7 +248,7 @@ required.
 
 ## `dashboard/`
 
-### `dashboard/app.py` 🔲 planned
+### `dashboard/app.py` 🔲 not yet built
 
 Streamlit utility dashboard. Reads directly from `data/seed.db` — no pipeline run
 required on clone.
@@ -237,10 +279,13 @@ this folder. See `data/SCHEMA.md` for full per-file documentation.
 Canonical schema, column name mappings per file, per-file messiness descriptions,
 bad-row catalog, and reference data (products, prices, reps, customers).
 
-### `data/seed.db` 🔲 generated by `db_loader.py`
+### `data/seed.db` ✅ generated (84 KB — needs Git commit)
 
-Pre-built SQLite database committed to Git. Lets the dashboard work immediately on
-clone without running the pipeline. Under 25 MB.
+Pre-built SQLite database. Generated by running `scripts/run_pipeline.py` against
+`data/sample_files/`. Lets the dashboard work immediately on clone without running
+the pipeline. 84 KB — well under the 25 MB limit.
+
+**To regenerate:** `.venv/bin/python scripts/run_pipeline.py`
 
 ### `data/output/` — gitignored
 
@@ -279,6 +324,37 @@ Excludes: `.env`, `credentials.json`, `token.json`, `data/output/`, `.venv/`,
 
 ## `scripts/`
 
+### `scripts/run_pipeline.py` ✅ built
+
+End-to-end pipeline runner: `consolidate → validate → load`. The primary entry point
+for generating `data/seed.db` and for running the live pipeline against new data.
+
+**Public API:**
+
+| Function | Args | Returns |
+|----------|------|---------|
+| `resolve_input_folder(source, local_input, folder_id, tmp_dir)` | strings + Path | `Path` to local input folder |
+| `run_pipeline(input_folder, db_path, mode, config_path)` | Paths + mode str | `tuple[str, LoadResult]` |
+
+**Usage:**
+```bash
+# Regenerate data/seed.db from sample files (default)
+.venv/bin/python scripts/run_pipeline.py
+
+# Full mode — custom local folder
+.venv/bin/python scripts/run_pipeline.py --mode full --input /path/to/folder
+
+# Full mode — Google Drive folder (requires .env credentials)
+.venv/bin/python scripts/run_pipeline.py --mode full --source gdrive --folder-id YOUR_FOLDER_ID
+
+# Override the output database path
+.venv/bin/python scripts/run_pipeline.py --db data/my_custom.db
+```
+
+Prints `validator.summarize()` + `db_loader.build_summary()` output on completion.
+
+---
+
 ### `scripts/seed_drive.py` ✅ built
 
 One-time utility to upload the local sample files to a Google Drive folder.
@@ -312,18 +388,24 @@ if not already set.
 | File | Status |
 |------|--------|
 | `src/drive_connector.py` | ✅ built |
-| `scripts/seed_drive.py` | ✅ built |
 | `src/consolidator.py` | ✅ built |
+| `src/validator.py` | ✅ built |
+| `src/db_loader.py` | ✅ built |
+| `src/export.py` | ✅ built |
+| `src/report.py` | ✅ built |
+| `scripts/run_pipeline.py` | ✅ built |
+| `scripts/seed_drive.py` | ✅ built |
 | `tests/test_drive_connector.py` | ✅ built |
-| `src/validator.py` | 🔲 next — load YAML rules, split df into clean + quarantine |
-| `tests/test_consolidator.py` | 🔲 next — unit tests for all 9 public functions |
-| `src/db_loader.py` | 🔲 after validator |
-| `src/export.py` | 🔲 after db_loader |
-| `src/report.py` | 🔲 after db_loader |
-| `tests/test_validator.py` | 🔲 after validator |
-| `dashboard/app.py` | 🔲 last |
+| `tests/test_consolidator.py` | ✅ built |
+| `tests/test_validator.py` | ✅ built |
+| `tests/test_db_loader.py` | ✅ built |
+| `tests/test_export.py` | ✅ built |
+| `tests/test_report.py` | ✅ built (115 tests) |
+| `tests/scripts/test_run_pipeline.py` | ✅ built (30 tests) |
+| `tests/scripts/test_seed_drive.py` | ✅ built (26 tests) |
+| `dashboard/app.py` | 🔲 not yet built |
 | `config/validation_rules.yaml` | ✅ built |
 | `data/sample_files/` | ✅ built |
-| `data/seed.db` | 🔲 needs db_loader.py |
-| `requirements.txt` | ✅ built |
+| `data/seed.db` | ✅ generated (84 KB — needs Git commit) |
+| `requirements.txt` | ✅ built (needs `streamlit`) |
 | `.env.example` | ✅ built |
