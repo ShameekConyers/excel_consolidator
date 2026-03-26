@@ -248,21 +248,34 @@ required.
 
 ## `dashboard/`
 
-### `dashboard/app.py` 🔲 not yet built
+### `dashboard/app.py` ✅ built
 
 Streamlit utility dashboard. Reads directly from `data/seed.db` — no pipeline run
-required on clone.
+required on clone. Functional style: six layers of pure functions with no shared
+mutable state. Data is loaded once per session via `@st.cache_data`.
 
-**Pages / views:**
-| View | Contents |
-|------|----------|
-| Summary | KPI cards: files processed, rows loaded, rows quarantined, columns standardized |
-| Data Quality | Per-file table: row counts, issues found, quarantine count |
-| Quarantine | Filterable table of flagged rows (source file, row #, reason, original values) |
-| Clean Data | Filterable preview of the `consolidated` table |
-| Export | Download consolidated Excel file directly from UI |
+**Pages / views (via `st.tabs`):**
+| Tab | Contents |
+|-----|----------|
+| Overview | Five KPI metric cards (files, total rows, rows passed, rows quarantined, columns standardised) + per-file data quality table with quarantine rate |
+| Quarantine | Filterable table of flagged rows — filter by source file and reason category; shows source_file, source_row, quarantine_reason, date, product, region, quantity, revenue |
+| Clean Data | Filterable preview of the `consolidated` table — filter by source file, region, and date range |
+
+**Sidebar:** Download `.xlsx` export button (calls `export.py`, serves bytes via `st.download_button`).
+
+**Function layers:**
+
+| Layer | Functions |
+|-------|-----------|
+| Cached loaders | `load_data`, `load_cleaning_summary`, `load_quarantine_summary` |
+| Filter helpers | `filter_quarantine`, `filter_consolidated`, `build_per_file_quality_table` |
+| Render functions | `render_kpi_cards`, `render_per_file_quality_table`, `render_quarantine_table`, `render_clean_data_table`, `render_export_button` |
+| Page renderers | `render_overview_page`, `render_quarantine_page`, `render_clean_data_page` |
+| Entry point | `main()` |
 
 **Run:** `.venv/bin/streamlit run dashboard/app.py`
+
+**Deploy:** Streamlit Community Cloud — point at `dashboard/app.py`, `data/seed.db` ships with the repo.
 
 ---
 
@@ -297,18 +310,25 @@ Export destination for `export.py` and `report.py`. Never committed.
 
 ### `requirements.txt` ✅ built
 
-Python dependencies. Current contents:
+Python dependencies, grouped by purpose:
 ```
+# Core pipeline
+pandas>=2.0.0        # pd.to_datetime(format="mixed") requires 2.0+
+openpyxl>=3.0.0
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# Dashboard
+streamlit>=1.30.0    # st.column_config.TextColumn(width=) requires 1.30+
+
+# Google Drive (optional)
 google-api-python-client>=2.0.0
 google-auth-httplib2>=0.1.0
 google-auth-oauthlib>=1.0.0
-python-dotenv>=1.0.0
+
+# Testing
 pytest>=7.0.0
-pandas>=2.0.0
-openpyxl>=3.0.0
-pyyaml>=6.0
 ```
-Still needed: `streamlit` (for `dashboard/app.py`). Note: pandas `>=2.0.0` is required — `pd.to_datetime(format="mixed")` was introduced in 2.0.
 
 ### `.env.example` ✅ built
 
@@ -403,9 +423,10 @@ if not already set.
 | `tests/test_report.py` | ✅ built (115 tests) |
 | `tests/scripts/test_run_pipeline.py` | ✅ built (30 tests) |
 | `tests/scripts/test_seed_drive.py` | ✅ built (26 tests) |
-| `dashboard/app.py` | 🔲 not yet built |
+| `dashboard/app.py` | ✅ built |
+| `.streamlit/config.toml` | ✅ built |
 | `config/validation_rules.yaml` | ✅ built |
 | `data/sample_files/` | ✅ built |
 | `data/seed.db` | ✅ generated (84 KB — needs Git commit) |
-| `requirements.txt` | ✅ built (needs `streamlit`) |
+| `requirements.txt` | ✅ built |
 | `.env.example` | ✅ built |
