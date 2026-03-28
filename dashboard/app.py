@@ -663,7 +663,7 @@ def render_clean_data_page(clean_df: pd.DataFrame) -> None:
         clean_df: Full consolidated DataFrame from load_data.
     """
     n_total = len(clean_df)
-    st.subheader("Clean Data Preview")
+    st.subheader("Sales")
     st.caption(f"{n_total} rows passed validation")
 
     all_files: list[str] = (
