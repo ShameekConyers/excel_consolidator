@@ -30,6 +30,7 @@ from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -337,6 +338,161 @@ def render_clean_data_table(clean_df: pd.DataFrame) -> None:
     )
 
 
+def render_file_quality_chart(quality_df: pd.DataFrame) -> None:
+    """Render a stacked horizontal bar chart of clean vs quarantined rows per file.
+
+    Args:
+        quality_df: DataFrame from build_per_file_quality_table with columns
+                    source_file, rows_loaded, rows_quarantined.
+    """
+    if quality_df.empty:
+        return
+    melted = quality_df.melt(
+        id_vars="source_file",
+        value_vars=["rows_loaded", "rows_quarantined"],
+        var_name="status",
+        value_name="rows",
+    )
+    melted["status"] = melted["status"].map(
+        {"rows_loaded": "Passed", "rows_quarantined": "Quarantined"}
+    )
+    chart = (
+        alt.Chart(melted)
+        .mark_bar()
+        .encode(
+            y=alt.Y("source_file:N", sort="-x", title=None),
+            x=alt.X("rows:Q", title="Rows"),
+            color=alt.Color(
+                "status:N",
+                scale=alt.Scale(
+                    domain=["Passed", "Quarantined"],
+                    range=["#4CAF50", "#FF5252"],
+                ),
+                title="Status",
+            ),
+            tooltip=["source_file", "status", "rows"],
+        )
+        .properties(height=max(len(quality_df) * 40, 200))
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+
+def render_quarantine_reasons_chart(quarantine_summary: QuarantineSummary) -> None:
+    """Render a horizontal bar chart of quarantine counts by reason type.
+
+    Args:
+        quarantine_summary: QuarantineSummary with by_reason_type dict.
+    """
+    if not quarantine_summary.by_reason_type:
+        return
+    df = pd.DataFrame(
+        list(quarantine_summary.by_reason_type.items()),
+        columns=["reason", "count"],
+    ).sort_values("count", ascending=False)
+    chart = (
+        alt.Chart(df)
+        .mark_bar(color="#FF8A65")
+        .encode(
+            y=alt.Y("reason:N", sort="-x", title=None),
+            x=alt.X("count:Q", title="Rows"),
+            tooltip=["reason", "count"],
+        )
+        .properties(height=max(len(df) * 40, 150))
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+
+def render_monthly_revenue_chart(clean_df: pd.DataFrame) -> None:
+    """Render a line chart of monthly revenue over time.
+
+    Args:
+        clean_df: Filtered consolidated DataFrame with date and revenue columns.
+    """
+    if clean_df.empty or "date" not in clean_df.columns:
+        return
+    df = clean_df.copy()
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df = df.dropna(subset=["date", "revenue"])
+    if df.empty:
+        return
+    df["month"] = df["date"].dt.to_period("M").dt.to_timestamp()
+    monthly = df.groupby("month")["revenue"].sum().reset_index()
+    chart = (
+        alt.Chart(monthly)
+        .mark_line(point=True, color="#1E88E5")
+        .encode(
+            x=alt.X("month:T", title="Month"),
+            y=alt.Y("revenue:Q", title="Revenue ($)"),
+            tooltip=[
+                alt.Tooltip("month:T", title="Month", format="%b %Y"),
+                alt.Tooltip("revenue:Q", title="Revenue", format="$,.0f"),
+            ],
+        )
+        .properties(height=300)
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+
+def render_revenue_by_region_chart(clean_df: pd.DataFrame) -> None:
+    """Render a bar chart of total revenue by region.
+
+    Args:
+        clean_df: Filtered consolidated DataFrame with region and revenue columns.
+    """
+    if clean_df.empty or "region" not in clean_df.columns:
+        return
+    by_region = (
+        clean_df.groupby("region")["revenue"]
+        .sum()
+        .reset_index()
+        .sort_values("revenue", ascending=False)
+    )
+    chart = (
+        alt.Chart(by_region)
+        .mark_bar(color="#42A5F5")
+        .encode(
+            x=alt.X("region:N", sort="-y", title="Region"),
+            y=alt.Y("revenue:Q", title="Revenue ($)"),
+            tooltip=[
+                alt.Tooltip("region:N"),
+                alt.Tooltip("revenue:Q", format="$,.0f"),
+            ],
+        )
+        .properties(height=300)
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+
+def render_revenue_by_product_chart(clean_df: pd.DataFrame) -> None:
+    """Render a horizontal bar chart of total revenue by product.
+
+    Args:
+        clean_df: Filtered consolidated DataFrame with product and revenue columns.
+    """
+    if clean_df.empty or "product" not in clean_df.columns:
+        return
+    by_product = (
+        clean_df.groupby("product")["revenue"]
+        .sum()
+        .reset_index()
+        .sort_values("revenue", ascending=False)
+    )
+    chart = (
+        alt.Chart(by_product)
+        .mark_bar(color="#7E57C2")
+        .encode(
+            y=alt.Y("product:N", sort="-x", title=None),
+            x=alt.X("revenue:Q", title="Revenue ($)"),
+            tooltip=[
+                alt.Tooltip("product:N"),
+                alt.Tooltip("revenue:Q", format="$,.0f"),
+            ],
+        )
+        .properties(height=max(len(by_product) * 45, 200))
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+
 def render_export_button(db_path: Path, output_dir: Path) -> None:
     """Render the export button in the sidebar and serve the generated .xlsx.
 
@@ -373,7 +529,7 @@ def render_overview_page(
     clean_df: pd.DataFrame,
     quarantine_df: pd.DataFrame,
 ) -> None:
-    """Render the Overview page with KPI cards and per-file quality table.
+    """Render the Overview page with KPI cards, charts, and quality table.
 
     Args:
         cleaning:      CleaningSummary dataclass from load_cleaning_summary.
@@ -384,13 +540,50 @@ def render_overview_page(
     st.subheader("Pipeline Summary")
     render_kpi_cards(cleaning, quarantine)
     st.divider()
+
+    col_left, col_right = st.columns(2)
+    with col_left:
+        st.subheader("Rows by File")
+        quality_df = build_per_file_quality_table(clean_df, quarantine_df)
+        render_file_quality_chart(quality_df)
+    with col_right:
+        st.subheader("Quarantine Reasons")
+        render_quarantine_reasons_chart(quarantine)
+
+    st.divider()
     st.subheader("Data Quality by File")
-    quality_df = build_per_file_quality_table(clean_df, quarantine_df)
     render_per_file_quality_table(quality_df)
 
 
+def render_quarantine_by_file_chart(quarantine_df: pd.DataFrame) -> None:
+    """Render a bar chart of quarantined row counts by source file.
+
+    Args:
+        quarantine_df: Full quarantine DataFrame from load_data.
+    """
+    if quarantine_df.empty:
+        return
+    by_file = (
+        quarantine_df.groupby("source_file")
+        .size()
+        .reset_index(name="count")
+        .sort_values("count", ascending=False)
+    )
+    chart = (
+        alt.Chart(by_file)
+        .mark_bar(color="#FF5252")
+        .encode(
+            y=alt.Y("source_file:N", sort="-x", title=None),
+            x=alt.X("count:Q", title="Quarantined Rows"),
+            tooltip=["source_file", "count"],
+        )
+        .properties(height=max(len(by_file) * 40, 150))
+    )
+    st.altair_chart(chart, use_container_width=True)
+
+
 def render_quarantine_page(quarantine_df: pd.DataFrame) -> None:
-    """Render the Quarantine Viewer page with filter controls and data table.
+    """Render the Quarantine Viewer page with charts, filters, and data table.
 
     Builds source_file and reason_type selectboxes from the data, calls
     filter_quarantine with the selected values, and renders the result with
@@ -402,6 +595,35 @@ def render_quarantine_page(quarantine_df: pd.DataFrame) -> None:
     n_total = len(quarantine_df)
     st.subheader("Quarantined Rows")
     st.caption(f"{n_total} rows held for review")
+
+    col_left, col_right = st.columns(2)
+    with col_left:
+        st.markdown("**By Reason**")
+        if not quarantine_df.empty:
+            reason_counts = (
+                quarantine_df["quarantine_reason"]
+                .fillna("")
+                .apply(_categorize_reason)
+                .value_counts()
+                .reset_index()
+            )
+            reason_counts.columns = ["reason", "count"]
+            chart = (
+                alt.Chart(reason_counts)
+                .mark_bar(color="#FF8A65")
+                .encode(
+                    y=alt.Y("reason:N", sort="-x", title=None),
+                    x=alt.X("count:Q", title="Rows"),
+                    tooltip=["reason", "count"],
+                )
+                .properties(height=max(len(reason_counts) * 40, 150))
+            )
+            st.altair_chart(chart, use_container_width=True)
+    with col_right:
+        st.markdown("**By File**")
+        render_quarantine_by_file_chart(quarantine_df)
+
+    st.divider()
 
     all_files: list[str] = (
         sorted(quarantine_df["source_file"].dropna().unique())
@@ -489,6 +711,20 @@ def render_clean_data_page(clean_df: pd.DataFrame) -> None:
         region=region_choice if region_choice != "All" else None,
         date_range=date_range_strs,
     )
+
+    st.subheader("Revenue Trend")
+    render_monthly_revenue_chart(filtered)
+
+    col_left, col_right = st.columns(2)
+    with col_left:
+        st.subheader("Revenue by Region")
+        render_revenue_by_region_chart(filtered)
+    with col_right:
+        st.subheader("Revenue by Product")
+        render_revenue_by_product_chart(filtered)
+
+    st.divider()
+    st.subheader("Data Table")
     render_clean_data_table(filtered)
     st.caption(f"Showing {len(filtered)} of {n_total} rows")
 
@@ -531,16 +767,16 @@ def main() -> None:
         st.divider()
         st.caption("Reads from data/seed.db. Re-run the pipeline to refresh.")
 
-    tab1, tab2, tab3 = st.tabs(["Overview", "Quarantine", "Clean Data"])
+    tab1, tab2, tab3 = st.tabs(["Sales Dashboard", "Pipeline Overview", "Quarantine"])
 
     with tab1:
-        render_overview_page(cleaning, quarantine_summary, clean_df, quarantine_df)
+        render_clean_data_page(clean_df)
 
     with tab2:
-        render_quarantine_page(quarantine_df)
+        render_overview_page(cleaning, quarantine_summary, clean_df, quarantine_df)
 
     with tab3:
-        render_clean_data_page(clean_df)
+        render_quarantine_page(quarantine_df)
 
 
 if __name__ == "__main__":
