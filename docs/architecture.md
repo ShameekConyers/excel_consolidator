@@ -28,7 +28,7 @@ data/sample_files/  ──►  consolidator.py  ──►  validator.py
                                ┌─────────────┼─────────────┐
                                ▼             ▼             ▼
                           export.py      report.py     dashboard/app.py
-                        (Excel out)   (.md report)    (Streamlit UI)
+                        (spreadsheet out)   (.md report)    (Streamlit UI)
 ```
 
 ---
@@ -73,7 +73,7 @@ folder populated by `drive_connector.py`) and produces a single merged DataFrame
 - Inject a `region = "West"` column for files that omit it (filename contains "west")
 - Parse and normalize all date columns to ISO 8601 (`YYYY-MM-DD`); leave unparseable values unchanged for the validator
 - Strip currency symbols and commas from `quantity`/`revenue`; leave non-numeric values unchanged for the validator
-- Attach `source_file` and `source_row` (1-based Excel row number) to every row **before** any rows are dropped
+- Attach `source_file` and `source_row` (1-based source row number) to every row **before** any rows are dropped
 - Drop fully-empty rows; detect and remove exact cross-file duplicates
 - Append every transformation to a shared `list[CleaningEntry]`
 
@@ -283,7 +283,7 @@ mutable state. Data is loaded once per session via `@st.cache_data`.
 
 ### `data/sample_files/` ✅ built
 
-Eight source files (6 Excel, 2 CSV) with realistic messiness and 24 intentionally
+Eight source files (6 XLSX, 2 CSV) with realistic messiness and 24 intentionally
 bad rows (~6%). These are the demo inputs — a hiring manager runs the tool against
 this folder. See `data/SCHEMA.md` for full per-file documentation.
 

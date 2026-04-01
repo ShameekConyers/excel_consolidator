@@ -10,12 +10,12 @@ row counts.
 
 | File | Format | Rows | Bad Rows | Period | Regions |
 |------|--------|-----:|--------:|--------|---------|
-| Q1_2024_sales.xlsx | Excel | 47 | 3 | Q1 2024 | West, East, Central |
-| Q2_2024_sales.xlsx | Excel | 55 | 2 | Q2 2024 | West, East, Central |
-| Q3_2024_sales.xlsx | Excel | 42 | 5 | Q3 2024 | West, East, Central |
-| Q4_2024_sales.xlsx | Excel | 52 | 4 | Q4 2024 | West, East, Central |
-| west_region_2024.xlsx | Excel | 58 + 2 title rows | 2 | FY 2024 | West only |
-| east_central_Q2_Q3.xlsx | Excel | 43 | 3 | Q2–Q3 2024 | East, Central |
+| Q1_2024_sales.xlsx | XLSX | 47 | 3 | Q1 2024 | West, East, Central |
+| Q2_2024_sales.xlsx | XLSX | 55 | 2 | Q2 2024 | West, East, Central |
+| Q3_2024_sales.xlsx | XLSX | 42 | 5 | Q3 2024 | West, East, Central |
+| Q4_2024_sales.xlsx | XLSX | 52 | 4 | Q4 2024 | West, East, Central |
+| west_region_2024.xlsx | XLSX | 58 + 2 title rows | 2 | FY 2024 | West only |
+| east_central_Q2_Q3.xlsx | XLSX | 43 | 3 | Q2–Q3 2024 | East, Central |
 | pipeline_q3_q4.csv | CSV | 46 | 2 | Q3–Q4 2024 | West, East, Central |
 | returns_flagged.csv | CSV | 49 | 3 | Q1–Q3 2024 | West, East, Central |
 

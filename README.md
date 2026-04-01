@@ -1,14 +1,14 @@
-# Drive-to-Database: Automated Excel Consolidation Pipeline
+# Drive-to-Database: Automated Spreadsheet Consolidation Pipeline
 
 ## Overview
 
-This tool takes a folder of messy Excel files — or a Google Drive folder — and ingests them into a SQLite database. During ingestion it tries to standardize and clean the data as much as it can. Any rows it can't fix get offloaded to a quarantine table with a plain-English explanation of what went wrong. From there a Streamlit dashboard shows you the full picture: what loaded cleanly, what needs review, and why.
+This tool takes a folder of messy spreadsheets — or a Google Drive folder — and ingests them into a SQLite database. During ingestion it tries to standardize and clean the data as much as it can. Any rows it can't fix get offloaded to a quarantine table with a plain-English explanation of what went wrong. From there a Streamlit dashboard shows you the full picture: what loaded cleanly, what needs review, and why.
 
 ---
 
 ## Motivation
 
-This is built for small businesses or ad hoc projects where a few people are collaborating through spreadsheets rather than a proper data warehouse. Maybe they're not familiar with PowerBI, or they just prefer working in Google Drive because it's easy to share. I've seen this pattern in a few real projects — a shared Drive folder with 20-30 Excel files that the team manually updates, with inconsistent column names and dates formatted six different ways.
+This is built for small businesses or ad hoc projects where a few people are collaborating through spreadsheets rather than a proper data warehouse. Maybe they're not familiar with PowerBI, or they just prefer working in Google Drive because it's easy to share. I've seen this pattern in a few real projects — a shared Drive folder with 20-30 spreadsheets that the team manually updates, with inconsistent column names and dates formatted six different ways.
 
 The result is usually someone manually cleaning everything in their own spreadsheet before they can run any analysis. This tool automates that cleanup and gives you a proper database at the end, plus an honest report of everything it touched and everything it couldn't fix.
 
@@ -27,7 +27,7 @@ python3 -m venv .venv
 .venv/bin/streamlit run dashboard/app.py
 ```
 
-The repo ships with sample Excel files in `data/sample_files/` that have realistic messiness built in: inconsistent column headers, mixed date formats, duplicates across files, and rows of bad data that trigger the quarantine system. No credentials or external dependencies needed.
+The repo ships with sample spreadsheets in `data/sample_files/` that have realistic messiness built in: inconsistent column headers, mixed date formats, duplicates across files, and rows of bad data that trigger the quarantine system. No credentials or external dependencies needed.
 
 ---
 
@@ -125,18 +125,18 @@ flag_non_conforming_types: true
 ```
 excel_consolidator/
 ├── src/
-│   ├── consolidator.py         # Discovers, reads, standardizes, and merges Excel files
+│   ├── consolidator.py         # Discovers, reads, standardizes, and merges spreadsheet files
 │   ├── validator.py            # Routes rows to clean_df or quarantine_df with reasons
 │   ├── drive_connector.py      # Optional: downloads files from Google Drive
 │   ├── db_loader.py            # Loads both tables into SQLite (--seed / --full)
-│   ├── export.py               # Exports consolidated clean data to Excel
+│   ├── export.py               # Exports consolidated clean data to spreadsheet format
 │   └── report.py               # Generates terminal + HTML cleaning summary
 ├── config/
 │   └── validation_rules.yaml   # All validation rules — edit here, not in Python
 ├── dashboard/
 │   └── app.py                  # Streamlit utility dashboard
 ├── data/
-│   ├── sample_files/           # 8 messy Excel/CSV files committed to repo
+│   ├── sample_files/           # 8 messy spreadsheet/CSV files committed to repo
 │   ├── seed.db                 # Pre-built SQLite DB from sample files
 │   └── output/                 # Consolidated exports (gitignored)
 ├── docs/
@@ -162,7 +162,7 @@ excel_consolidator/
 ## Export Commands
 
 ```bash
-# Export consolidated clean data to Excel
+# Export consolidated clean data to spreadsheet format
 .venv/bin/python src/export.py --output data/output/consolidated.xlsx
 
 # Generate cleaning summary report
@@ -180,7 +180,7 @@ excel_consolidator/
 - **Data Quality Report** — per-file breakdown of issues found
 - **Quarantine** — filterable table of flagged rows with source, row number, and reason
 - **Clean Data Preview** — filterable view of the consolidated dataset
-- **Export** — download consolidated Excel directly from the UI
+- **Export** — download consolidated spreadsheet directly from the UI
 
 ---
 

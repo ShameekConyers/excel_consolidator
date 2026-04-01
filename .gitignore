@@ -1,8 +1,12 @@
 # Secrets & credentials — never commit these
 .env
-credentials.json
+.env.*
+!.env.example
+credentials*.json
 token.json
 *.key
+*.pem
+*.crt
 
 # Data outputs — generated files, not source
 data/output/
