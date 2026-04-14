@@ -2,19 +2,19 @@
 
 ## Overview
 
-This tool takes a folder of messy spreadsheets — or a Google Drive folder — and ingests them into a SQLite database. During ingestion it tries to standardize and clean the data as much as it can. Any rows it can't fix get offloaded to a quarantine table with a plain-English explanation of what went wrong. From there a Streamlit dashboard shows you the full picture: what loaded cleanly, what needs review, and why.
+This tool takes a folder of messy spreadsheets (or a Google Drive folder) and ingests them into a SQLite database. During ingestion it tries to standardize and clean the data as much as it can. Any rows it can't fix get offloaded to a quarantine table with a plain-English explanation of what went wrong. From there a Streamlit dashboard shows you the full picture: what loaded cleanly, what needs review, and why.
 
 ---
 
 ## Motivation
 
-This is built for small businesses or ad hoc projects where a few people are collaborating through spreadsheets rather than a proper data warehouse. Maybe they're not familiar with PowerBI, or they just prefer working in Google Drive because it's easy to share. I've seen this pattern in a few real projects — a shared Drive folder with 20-30 spreadsheets that the team manually updates, with inconsistent column names and dates formatted six different ways.
+This is built for small businesses or ad hoc projects where a few people are collaborating through spreadsheets rather than a proper data warehouse. Maybe they're not familiar with PowerBI, or they just prefer working in Google Drive because it's easy to share. I've seen this pattern in a few real projects: a shared Drive folder with 20-30 spreadsheets that the team manually updates, with inconsistent column names and dates formatted six different ways.
 
 The result is usually someone manually cleaning everything in their own spreadsheet before they can run any analysis. This tool automates that cleanup and gives you a proper database at the end, plus an honest report of everything it touched and everything it couldn't fix.
 
 ---
 
-## Quick Start — Local Mode (no credentials needed)
+## Quick Start, Local Mode (no credentials needed)
 
 ```bash
 git clone <repo>
@@ -77,7 +77,7 @@ Some examples of what that looks like:
 "value 'see notes below' cannot be converted to numeric in row 12 of Feb_data.xlsx"
 ```
 
-The dashboard surfaces these in a filterable table — the output you hand back to whoever owns the source files.
+The dashboard surfaces these in a filterable table, the output you hand back to whoever owns the source files.
 
 ---
 
@@ -132,7 +132,7 @@ excel_consolidator/
 │   ├── export.py               # Exports consolidated clean data to spreadsheet format
 │   └── report.py               # Generates terminal + HTML cleaning summary
 ├── config/
-│   └── validation_rules.yaml   # All validation rules — edit here, not in Python
+│   └── validation_rules.yaml   # All validation rules, edit here, not in Python
 ├── dashboard/
 │   └── app.py                  # Streamlit utility dashboard
 ├── data/
@@ -153,9 +153,9 @@ excel_consolidator/
 ```
 
 **Database tables:**
-- `consolidated` — clean rows that passed all validation rules
-- `quarantine` — failed rows with original data + source info + plain-English reason
-- `cleaning_log` — record of every transformation applied (column renames, type conversions, duplicate removals)
+- `consolidated`: clean rows that passed all validation rules
+- `quarantine`: failed rows with original data + source info + plain-English reason
+- `cleaning_log`: record of every transformation applied (column renames, type conversions, duplicate removals)
 
 ---
 
@@ -176,11 +176,11 @@ excel_consolidator/
 > *Screenshots to be added.*
 
 **Views:**
-- **Summary** — KPI cards: files processed, rows loaded, rows quarantined, columns standardized
-- **Data Quality Report** — per-file breakdown of issues found
-- **Quarantine** — filterable table of flagged rows with source, row number, and reason
-- **Clean Data Preview** — filterable view of the consolidated dataset
-- **Export** — download consolidated spreadsheet directly from the UI
+- **Summary:** KPI cards showing files processed, rows loaded, rows quarantined, columns standardized
+- **Data Quality Report:** per-file breakdown of issues found
+- **Quarantine:** filterable table of flagged rows with source, row number, and reason
+- **Clean Data Preview:** filterable view of the consolidated dataset
+- **Export:** download consolidated spreadsheet directly from the UI
 
 ---
 

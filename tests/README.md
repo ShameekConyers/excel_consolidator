@@ -6,7 +6,7 @@ Run all tests: `pytest tests/ -v`
 
 ## `test_drive_connector.py`
 
-Unit tests for `src/drive_connector.py`. All Google Drive API calls are mocked —
+Unit tests for `src/drive_connector.py`. All Google Drive API calls are mocked,
 no credentials or network access required.
 
 ---
@@ -107,7 +107,7 @@ Tests the private helper that reads a saved OAuth token from `token.json`.
 
 ### `TestRunOauthFlow`
 
-Tests the private OAuth consent flow — credential source selection, error handling,
+Tests the private OAuth consent flow: credential source selection, error handling,
 and token persistence.
 
 | Test | Covers |
@@ -124,7 +124,7 @@ and token persistence.
 
 ### `TestAuthenticate`
 
-Tests the public `authenticate()` function — token reuse, refresh, and fallback
+Tests the public `authenticate()` function: token reuse, refresh, and fallback
 to the OAuth flow.
 
 | Test | Covers |
