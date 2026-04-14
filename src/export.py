@@ -370,7 +370,7 @@ def _autosize_columns(
     for col_idx, col_name in enumerate(df.columns, start=1):
         header_len = len(str(col_name))
         max_cell_len = (
-            df[col_name].astype(str).str.len().max()
+            max(len(str(v)) for v in df[col_name])
             if not df.empty
             else 0
         )
